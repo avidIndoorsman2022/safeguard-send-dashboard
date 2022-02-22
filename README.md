@@ -12,6 +12,8 @@ This dashboard is designed for managers, not end users.  With this view, manager
 6)	Be able to view/edit your own rules (using the icons in the upper right corner)
 7)	Be able to double click and see more information about the row (User name, email address, date, subject, to, from, cc, bcc, attachment name(s), rule, prompt text, response, and a next/previous button to easily scroll through interactions by this same user)
 
+![image](https://user-images.githubusercontent.com/93170237/155191688-801c876b-962e-4111-8b5a-fefd57697625.png)
+
 A demo version of this project is available at https://avidindoorsman2022.github.io/safeguard-send-dashboard/index.html.
 
 Note that only item 1 is implemented in this demo version.
