@@ -1,29 +1,120 @@
 import * as React from "react";
-import {
-  TextField,
-  ITextFieldStyles,
-  ITextFieldStyleProps,
-} from "@fluentui/react/lib/TextField";
+import { Announced } from "@fluentui/react/lib/Announced";
 import {
   Label,
   ILabelStyles,
   ILabelStyleProps,
 } from "@fluentui/react/lib/Label";
-import { Toggle } from "@fluentui/react/lib/Toggle";
-import { Announced } from "@fluentui/react/lib/Announced";
+import { DefaultEffects } from "@fluentui/react";
+import { DefaultPalette, themeRulesStandardCreator } from "@fluentui/react";
 import {
   DetailsList,
   DetailsListLayoutMode,
+  IDetailsRowBaseProps,
+  IDetailsRowCheckStyles,
+  IDetailsFooterProps,
+  DetailsRow,
+  DetailsRowCheck,
   Selection,
   SelectionMode,
   IColumn,
 } from "@fluentui/react/lib/DetailsList";
+import { FontSizes } from "@fluentui/theme";
+import { IRenderFunction } from "@fluentui/utilities";
 import { MarqueeSelection } from "@fluentui/react/lib/MarqueeSelection";
 import { mergeStyleSets } from "@fluentui/react/lib/Styling";
+import { Separator } from "@fluentui/react/lib/Separator";
+import {
+  Stack,
+  StackItem,
+  IStackItemStyles,
+  IStackTokens,
+} from "@fluentui/react/lib/Stack";
+import {
+  TextField,
+  ITextFieldStyles,
+  ITextFieldStyleProps,
+} from "@fluentui/react/lib/TextField";
+import { Toggle } from "@fluentui/react/lib/Toggle";
 import { TooltipHost } from "@fluentui/react";
+import { Sticky, StickyPositionType } from "@fluentui/react/lib/Sticky";
+import { getItemStyles } from "@fluentui/react/lib/components/ContextualMenu/ContextualMenu.classNames";
 
 const gridDisplayBackground = {
   paddingTop: 25,
+  width: "100%",
+};
+
+const whiteGlassMorphism = {
+  background: DefaultPalette.neutralLighter,
+  borderRadius: 8,
+  width: "80%",
+  margin: "auto",
+  alignItems: "left",
+  boxShadow: DefaultEffects.elevation16,
+  fontSize: FontSizes.size18,
+  color: "white",
+  foregroundColor: "white",
+  textColor: "white",
+  textForegroundColor: "white",
+  textForeground: "white",
+  fontColor: "white",
+  fontWeight: "normal",
+  //backdrop-filter: blur(5px),
+  //-webkit-backdrop-filter: blur(5px),
+  border: "1px solid " + DefaultPalette.neutralSecondary,
+};
+
+const blueGlassMorphism = {
+  background: DefaultPalette.themePrimary,
+  padding: 10,
+  borderRadius: 8,
+  width: "78%",
+  margin: "auto",
+  boxShadow: DefaultEffects.elevation16,
+  //backdrop-filter: blur(5px),
+  //-webkit-backdrop-filter: blur(5px),
+  border: "1px solid " + DefaultPalette.themeDarker,
+};
+
+/*
+<Separator>Summary</Separator>
+<div style={whiteGlassMorphism}>
+  <Stack>
+    <Label>Number of rows: {items.length}</Label>
+    <Label>
+      Number of times users corrected an email: {items.length}
+    </Label>
+  </Stack>
+</div>
+<Separator>Data</Separator>
+<div style={blueGlassMorphism}>
+  <Stack>
+    <Label className={classNames.summaryText}>
+      Number of rows: {items.length}
+    </Label>
+    <Label styles={summaryStyles}>
+      Number of times users corrected an email: {items.length}
+    </Label>
+  </Stack>
+</div>
+*/
+const summaryHeaderStyles = {
+  root: {
+    textAlign: "left",
+    fontSize: FontSizes.size16,
+    color: DefaultPalette.whiteTranslucent40,
+  },
+};
+const summaryStyles = {
+  root: {
+    textAlign: "left",
+    fontSize: FontSizes.size12,
+    //fontWeight: "normal",
+    color: DefaultPalette.white,
+    marginLeft: 15,
+    padding: 0,
+  },
 };
 
 const classNames = mergeStyleSets({
@@ -52,7 +143,8 @@ const classNames = mergeStyleSets({
   controlWrapper: {
     display: "flex",
     flexWrap: "wrap",
-    width: "90%",
+    width: "100%",
+    margin: "auto",
   },
   exampleToggle: {
     display: "inline-block",
@@ -63,17 +155,10 @@ const classNames = mergeStyleSets({
     marginBottom: "20px",
   },
 });
-const controlStyles = {
-  root: {
-    margin: "auto",
-    width: "100%",
-    maxWidth: "600px",
-  },
-};
 
 function getStyles(props: ITextFieldStyleProps): Partial<ITextFieldStyles> {
   return {
-    root: [{ margin: "auto", width: "100%", maxWidth: "600px" }],
+    root: [{ margin: "auto", width: "80%" }],
     subComponentStyles: {
       label: getLabelStyles,
     },
@@ -116,22 +201,27 @@ export class GridDisplay extends React.Component<
 > {
   private _selection: Selection;
   private _allItems: IDocument[];
+  private _cancelledTotal: number;
 
   constructor(props: {}) {
     super(props);
 
     this._allItems = _generateDocuments();
+    this._cancelledTotal = _getCancelledTotal(this._allItems);
 
     const columns: IColumn[] = [
       {
         key: "column1",
         name: "Date",
         fieldName: "dateModifiedValue",
-        minWidth: 100,
+        minWidth: 50,
         maxWidth: 140,
+        flexGrow: 20, // was maxWidth: 140, 20+35+15+30, 4+7+3+6=20
+        targetWidthProportion: 20,
+        isResizable: true,
+        isCollapsible: false,
         isSorted: true,
         isSortedDescending: true,
-        isResizable: true,
         onColumnClick: this._onColumnClick,
         data: "number",
         onRender: (item: IDocument) => {
@@ -143,11 +233,16 @@ export class GridDisplay extends React.Component<
         key: "column2",
         name: "User Email",
         fieldName: "modifiedBy",
-        minWidth: 140,
+        minWidth: 70,
         maxWidth: 180,
+        flexGrow: 35, //
+        targetWidthProportion: 35,
         isResizable: true,
-        isCollapsible: true,
+        isCollapsible: false,
         data: "string",
+        //isRowHeader: true,
+        //sortAscendingAriaLabel: "Sorted A to Z",
+        //sortDescendingAriaLabel: "Sorted Z to A",
         onColumnClick: this._onColumnClick,
         onRender: (item: IDocument) => {
           return <span>{item.modifiedBy}</span>;
@@ -158,10 +253,12 @@ export class GridDisplay extends React.Component<
         key: "column3",
         name: "Response",
         fieldName: "fileSizeRaw",
-        minWidth: 70,
+        minWidth: 35,
         maxWidth: 90,
+        flexGrow: 15, //
+        targetWidthProportion: 15,
         isResizable: true,
-        isCollapsible: true,
+        isCollapsible: false,
         data: "number",
         onColumnClick: this._onColumnClick,
         onRender: (item: IDocument) => {
@@ -172,12 +269,12 @@ export class GridDisplay extends React.Component<
         key: "column4",
         name: "Rule",
         fieldName: "name",
-        minWidth: 210,
+        minWidth: 100,
         maxWidth: 350,
-        isRowHeader: true,
+        flexGrow: 30, //
+        targetWidthProportion: 30,
         isResizable: true,
-        sortAscendingAriaLabel: "Sorted A to Z",
-        sortDescendingAriaLabel: "Sorted Z to A",
+        isCollapsible: false,
         onColumnClick: this._onColumnClick,
         data: "string",
         isPadded: true,
@@ -238,6 +335,21 @@ export class GridDisplay extends React.Component<
 
     return (
       <div style={gridDisplayBackground}>
+        <div style={blueGlassMorphism}>
+          <Stack>
+            <Label styles={summaryHeaderStyles}>Summary:</Label>
+            <Label styles={summaryStyles}>
+              Number of users: {items.length}
+            </Label>
+            <Label styles={summaryStyles}>
+              Number of times users prompted with a warning: {items.length}
+            </Label>
+            <Label styles={summaryStyles}>
+              Number of times users corrected an email: {this._cancelledTotal}
+            </Label>
+          </Stack>
+        </div>
+        <Separator />
         <div className={classNames.controlWrapper}>
           <TextField
             label="Search:"
@@ -411,10 +523,21 @@ function _copyAndSort<T>(
     );
 }
 
+function _getCancelledTotal(items: IDocument[]): number {
+  let cancelledCount: number = 0;
+
+  for (let i = 0; i < items.length; i++) {
+    if (items[i].fileSize == "Cancelled") {
+      cancelledCount++;
+    }
+  }
+  return cancelledCount;
+}
+
 function _generateDocuments() {
   const items: IDocument[] = [];
   let newItems: IDocument[] = [];
-  for (let i = 0; i < 10; i++) {
+  for (let i = 0; i < 50; i++) {
     const randomDate = _randomDate(new Date(2022, 0, 1), new Date());
     const randomFileSize = _randomFileSize();
     const randomFileType = _randomFileIcon();
