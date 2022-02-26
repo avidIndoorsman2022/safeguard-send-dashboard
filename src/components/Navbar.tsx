@@ -13,6 +13,7 @@ import { mergeStyles } from "@fluentui/react/lib/Styling";
 import { Text } from "@fluentui/react/lib/Text";
 import { TooltipHost, ITooltipHostStyles } from "@fluentui/react/lib/Tooltip";
 import { DefaultPalette } from "@fluentui/react";
+import imgURL from "/assets/SafeguardSend-128.png";
 
 const neutralLighterBackground = {
   root: {
@@ -44,6 +45,7 @@ const stackItemStyles: IStackItemStyles = {
     display: "flex",
     justifyContent: "center",
     padding: 5,
+    overflow: "hidden",
   },
 };
 
@@ -93,11 +95,7 @@ export class Navbar extends Component {
         >
           <Stack horizontal tokens={containerStackTokens}>
             <StackItem styles={stackItemStyles}>
-              <Image
-                {...imageProps}
-                src="../assets/SafeguardSend-128.png"
-                alt="Company Logo"
-              />
+              <Image {...imageProps} src={imgURL} alt="Company Logo" />
             </StackItem>
             <StackItem styles={stackItemStyles}>
               <Stack>
